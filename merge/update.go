@@ -15,6 +15,7 @@ package merge
 
 import (
 	"fmt"
+
 	"k8s.io/klog/v2"
 	"sigs.k8s.io/structured-merge-diff/v4/fieldpath"
 	"sigs.k8s.io/structured-merge-diff/v4/typed"
@@ -143,7 +144,9 @@ func (s *Updater) update(oldObject, newObject *typed.TypedValue, version fieldpa
 // this is a CREATE call).
 func (s *Updater) Update(liveObject, newObject *typed.TypedValue, version fieldpath.APIVersion, managers fieldpath.ManagedFields, manager string) (*typed.TypedValue, fieldpath.ManagedFields, error) {
 	var err error
-	klog.Infof("Updater liveObject: %v,Updater newObject: %v", liveObject, newObject)
+	fs1, _ := liveObject.ToFieldSet()
+	fs2, _ := newObject.ToFieldSet()
+	klog.Infof("Updater liveObject: %v,Updater newObject: %v", fs1, fs2)
 	managers, err = s.reconcileManagedFieldsWithSchemaChanges(liveObject, managers)
 	if err != nil {
 		return nil, fieldpath.ManagedFields{}, err
