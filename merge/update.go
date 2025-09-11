@@ -104,10 +104,12 @@ func (s *Updater) update(oldObject, newObject *typed.TypedValue, version fieldpa
 				return nil, nil, fmt.Errorf("failed to convert new object: %v", err)
 			}
 			compare, err = versionedOldObject.Compare(versionedNewObject)
+			klog.Infof("no filiter compare: %v", compare)
 			if err != nil {
 				return nil, nil, fmt.Errorf("failed to compare objects: %v", err)
 			}
 			versions[managerSet.APIVersion()] = compare.FilterFields(s.IgnoreFilter[managerSet.APIVersion()])
+			klog.Infof("after filiter compare: %v,versions is: %v", compare, versions)
 		}
 
 		conflictSet := managerSet.Set().Intersection(compare.Modified.Union(compare.Added))
