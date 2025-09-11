@@ -112,6 +112,8 @@ func (s *Updater) update(oldObject, newObject *typed.TypedValue, version fieldpa
 			klog.Infof("after filiter compare: %v,versions is: %v", compare, versions)
 		}
 
+		klog.Infof("last compare: %v", compare)
+
 		conflictSet := managerSet.Set().Intersection(compare.Modified.Union(compare.Added))
 		if !conflictSet.Empty() {
 			conflicts[manager] = fieldpath.NewVersionedSet(conflictSet, managerSet.APIVersion(), false)
