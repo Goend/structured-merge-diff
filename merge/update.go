@@ -75,8 +75,10 @@ func (s *Updater) update(oldObject, newObject *typed.TypedValue, version fieldpa
 	versions := map[fieldpath.APIVersion]*typed.Comparison{
 		version: compare.FilterFields(s.IgnoreFilter[version]),
 	}
+	klog.Infof("versions is: %v", versions)
 
 	for manager, managerSet := range managers {
+		klog.Infof("manager is: %v,managerset is %v", manager, managerSet)
 		if manager == workflow {
 			continue
 		}
@@ -86,6 +88,7 @@ func (s *Updater) update(oldObject, newObject *typed.TypedValue, version fieldpa
 			versionedOldObject, err := s.Converter.Convert(oldObject, managerSet.APIVersion())
 			if err != nil {
 				if s.Converter.IsMissingVersionError(err) {
+					klog.Infof("delete manager step 1,manager is %v", manager)
 					delete(managers, manager)
 					continue
 				}
@@ -94,6 +97,7 @@ func (s *Updater) update(oldObject, newObject *typed.TypedValue, version fieldpa
 			versionedNewObject, err := s.Converter.Convert(newObject, managerSet.APIVersion())
 			if err != nil {
 				if s.Converter.IsMissingVersionError(err) {
+					klog.Infof("delete manager step 2,manager is %v", manager)
 					delete(managers, manager)
 					continue
 				}
@@ -109,10 +113,12 @@ func (s *Updater) update(oldObject, newObject *typed.TypedValue, version fieldpa
 		conflictSet := managerSet.Set().Intersection(compare.Modified.Union(compare.Added))
 		if !conflictSet.Empty() {
 			conflicts[manager] = fieldpath.NewVersionedSet(conflictSet, managerSet.APIVersion(), false)
+			klog.Infof("conflicts is %v", conflicts)
 		}
 
 		if !compare.Removed.Empty() {
 			removed[manager] = fieldpath.NewVersionedSet(compare.Removed, managerSet.APIVersion(), false)
+			klog.Infof("removed is %v", removed)
 		}
 	}
 
@@ -122,14 +128,17 @@ func (s *Updater) update(oldObject, newObject *typed.TypedValue, version fieldpa
 
 	for manager, conflictSet := range conflicts {
 		managers[manager] = fieldpath.NewVersionedSet(managers[manager].Set().Difference(conflictSet.Set()), managers[manager].APIVersion(), managers[manager].Applied())
+		klog.Infof("update manager step 1 is %v", managers)
 	}
 
 	for manager, removedSet := range removed {
 		managers[manager] = fieldpath.NewVersionedSet(managers[manager].Set().Difference(removedSet.Set()), managers[manager].APIVersion(), managers[manager].Applied())
+		klog.Infof("update manager step 2 is %v", managers)
 	}
 
 	for manager := range managers {
 		if managers[manager].Set().Empty() {
+			klog.Infof("delete manager step 3,manager is %v", manager)
 			delete(managers, manager)
 		}
 	}
