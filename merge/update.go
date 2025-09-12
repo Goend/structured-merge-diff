@@ -71,6 +71,7 @@ func (s *Updater) update(oldObject, newObject *typed.TypedValue, version fieldpa
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to compare objects: %v", err)
 	}
+	klog.Infof("first compare is: %v", compare)
 
 	versions := map[fieldpath.APIVersion]*typed.Comparison{
 		version: compare.FilterFields(s.IgnoreFilter[version]),
